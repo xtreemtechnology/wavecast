@@ -121,6 +121,11 @@
 
     if (!append) {
       state.searchOffset = 0;
+
+      // Update the results label immediately so the user sees what's happening
+      const labelEl = document.getElementById('resultsLabel');
+      if (labelEl) labelEl.textContent = `Searching for "${term}"…`;
+
       showLoading('resultsArea', `Searching for "${term}"…`);
       document.getElementById('resultsCount').textContent = '';
       
@@ -147,7 +152,14 @@
     } catch (err) {
       console.error('Search failed:', err);
       if (!append) {
-        showError('resultsArea', 'Could not reach the iTunes API. Check your connection.');
+        const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
+        const msg = isTimeout
+          ? 'The request timed out. The iTunes API may be slow — please try again.'
+          : 'Could not reach the iTunes API. Check your internet connection and try again.';
+        showError('resultsArea', msg);
+        
+        const labelEl = document.getElementById('resultsLabel');
+        if (labelEl) labelEl.textContent = 'Search failed';
         document.getElementById('resultsCount').textContent = '';
       } else {
         alert('Could not load more results. Please check your connection.');

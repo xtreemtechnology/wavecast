@@ -38,8 +38,7 @@ function renderTopics() {
 
 // ─── Loading / State Screens ──────────────────────────────────────────────────
 
-/** Shows a loading spinner in the target container. */
-/** Shows a loading spinner or skeleton screen in the target container. */
+/** Shows a loading skeleton screen or spinner in the target container. */
 function showLoading(containerId, message = 'Fetching podcasts…') {
   const el = document.getElementById(containerId);
   if (!el) return;

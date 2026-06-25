@@ -32,16 +32,21 @@ async function searchPodcasts(term, limit = 20, offset = 0) {
 
   const url = `${API_BASE}?${params.toString()}`;
 
-  const response = await fetch(url);
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
 
-  if (!response.ok) {
-    throw new Error(`iTunes API returned status ${response.status}.`);
+    if (!response.ok) {
+      throw new Error(`iTunes API returned status ${response.status}.`);
+    }
+
+    const data = await response.json();
+
+    // iTunes wraps results in a `results` array
+    return data.results || [];
+  } catch (err) {
+    console.error('searchPodcasts error:', err);
+    throw err;
   }
-
-  const data = await response.json();
-
-  // iTunes wraps results in a `results` array
-  return data.results || [];
 }
 
 /**
