@@ -121,6 +121,29 @@ function showEmpty(containerId, term = '') {
 // ─── Results ─────────────────────────────────────────────────────────────────
 
 /**
+ * Shows a welcoming hero state on first load before the user searches.
+ */
+function showWelcome() {
+  const area    = document.getElementById('resultsArea');
+  const labelEl = document.getElementById('resultsLabel');
+  const countEl = document.getElementById('resultsCount');
+  const loadMore = document.getElementById('loadMoreContainer');
+
+  if (labelEl) labelEl.textContent = '';
+  if (countEl) countEl.textContent = '';
+  if (loadMore) loadMore.style.display = 'none';
+
+  if (!area) return;
+  area.innerHTML = `
+    <div class="state-box welcome-hero">
+      <div class="welcome-icon">🎙️</div>
+      <h2>Discover Podcasts</h2>
+      <p>Search by topic, host, or podcast name to explore thousands of shows.<br>Try a topic pill below to get started instantly.</p>
+    </div>
+  `;
+}
+
+/**
  * Renders the search results layout into #resultsArea.
  * Supports overwrite mode (first page) and append mode (pagination).
  *
@@ -137,7 +160,9 @@ function renderResults(results, term, append = false) {
   if (!area) return;
 
   if (!append) {
-    if (labelEl) labelEl.textContent = `Results for "${term}"`;
+    // Capitalise first letter of the term for a clean heading
+    const displayTerm = term.charAt(0).toUpperCase() + term.slice(1);
+    if (labelEl) labelEl.textContent = `"${displayTerm}" Podcasts`;
     if (countEl) countEl.textContent = `${results.length} found`;
 
     if (!results.length) {

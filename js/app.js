@@ -14,7 +14,7 @@
   // ─── App State ──────────────────────────────────────────────────────────────
 
   const state = {
-    currentTopic:     'technology',   // Active topic pill query
+    currentTopic:     '',              // Active topic pill query
     currentPod:       null,           // Podcast object currently open in detail view
     currentPodIndex:  0,              // Color index for the open podcast
     savedPods:        [],             // Array of saved podcast objects
@@ -549,8 +549,8 @@
 
     renderTopics();
     bindEvents();
-    // Load the default topic on startup
-    runSearch(state.currentTopic, false);
+    // Show a welcome hero instead of auto-searching
+    showWelcome();
   }
 
   document.addEventListener('DOMContentLoaded', init);

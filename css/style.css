@@ -540,6 +540,32 @@ body {
   color: var(--text-muted);
 }
 
+.welcome-hero {
+  padding: 5rem 2rem;
+  gap: 16px;
+}
+
+.welcome-hero .welcome-icon {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-hero h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.welcome-hero p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 420px;
+  margin: 0;
+}
+
 .loading-spinner {
   display: flex;
   align-items: center;
