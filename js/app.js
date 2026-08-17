@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  // ─── App State ─────────────────────────────────────────────────────────────
+  // ─── App State ───────────────────────────────────────────────────────────────
 
   const state = {
     currentTopic:     '',              // Active topic pill query
@@ -65,16 +65,16 @@
    * @param {'browse'|'detail'|'saved'|'trending'} viewName
    */
   function showView(viewName) {
-    const views = {
-      browse:   els.browseView(),
-      detail:   els.detailView(),
-      saved:    els.savedView(),
-      trending: els.browseView(),   // Trending reuses browse layout
-    };
-    Object.entries(views).forEach(([key, el]) => {
-      if (!el) return;
-      el.classList.toggle('active', key === viewName);
-    });
+    const browseEl = els.browseView();
+    const detailEl = els.detailView();
+    const savedEl = els.savedView();
+
+    // Trending reuses the browse layout, so both should activate browseView.
+    const showBrowse = viewName === 'browse' || viewName === 'trending';
+
+    if (browseEl) browseEl.classList.toggle('active', showBrowse);
+    if (detailEl) detailEl.classList.toggle('active', viewName === 'detail');
+    if (savedEl) savedEl.classList.toggle('active', viewName === 'saved');
   }
 
   // ─── Tab Navigation ───────────────────────────────────────────────────────────
@@ -278,7 +278,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ─── Preview ──────────────────────────────────────────────────────────────────
+  // ─── Preview ─────────────────────────────────────────────────────────────────
 
   /**
    * Attempts to play the iTunes preview audio for a podcast in our custom player.
@@ -405,7 +405,7 @@
     currentAudio.currentTime = pct * currentAudio.duration;
   }
 
-  // ─── Theme Management ────────────────────────────────────────────────────────
+  // ─── Theme Management ─────────────────────────────────────────────────────────
 
   function toggleTheme() {
     const isDark = document.body.classList.toggle('dark-mode');
@@ -413,7 +413,7 @@
     localStorage.setItem('wavecast_theme', state.theme);
   }
 
-  // ─── Save / Unsave ───────────────────────────────────────────────────────────
+  // ─── Save / Unsave ────────────────────────────────────────────────────────────
 
   function isPodSaved(pod) {
     return state.savedPods.some(p => p.collectionId === pod.collectionId);
@@ -558,7 +558,7 @@
     }
   }
 
-  // ─── Init ────────────────────────────────────────────────────────────────────
+  // ─── Init ─────────────────────────────────────────────────────────────────────
 
   function init() {
     // Theme initialization
@@ -588,7 +588,7 @@
 
   document.addEventListener('DOMContentLoaded', init);
 
-  // ─── Public API (for inline onclick handlers in rendered HTML) ────��──────────
+  // ─── Public API (for inline onclick handlers in rendered HTML) ───────────────
 
   window.App = {
     openDetail,
