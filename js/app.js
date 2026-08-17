@@ -11,7 +11,7 @@
 (function () {
   'use strict';
 
-  // ─── App State ──────────────────────────────────────────────────────────────
+  // ─── App State ─────────────────────────────────────────────────────────────
 
   const state = {
     currentTopic:     '',              // Active topic pill query
@@ -23,6 +23,7 @@
     lastTerm:         '',             // Last search term used
     searchOffset:     0,              // Track pagination offset
     theme:            'light',        // 'light' | 'dark'
+    trendingTerm:     '',             // Last trending term chosen
   };
 
   // ─── Global Audio Player State ──────────────────────────────────────────────
@@ -44,7 +45,7 @@
     subscribeBtn:    () => document.getElementById('dSubscribe'),
     shareBtn:        () => document.getElementById('dShare'),
     tabs:            () => document.querySelectorAll('.tab'),
-    
+
     // Sticky bottom player elements
     audioPlayer:     () => document.getElementById('audioPlayer'),
     playerTitle:     () => document.getElementById('playerTitle'),
@@ -93,6 +94,9 @@
       showView('browse');
       if (tab === 'trending') {
         loadTrending();
+      } else {
+        const labelEl = document.getElementById('resultsLabel');
+        if (labelEl) labelEl.textContent = 'Top results';
       }
     } else if (tab === 'saved') {
       showView('saved');
@@ -100,13 +104,35 @@
     }
   }
 
-  function loadTrending() {
+  async function loadTrending() {
     const trendingTerms = ['true crime', 'comedy', 'business', 'self improvement'];
-    const randomTerm    = trendingTerms[Math.floor(Math.random() * trendingTerms.length)];
-    runSearch(randomTerm, false);   // false = don't update the pill UI
+
+    // Keep one stable trending term per session unless explicitly reset.
+    if (!state.trendingTerm) {
+      state.trendingTerm = trendingTerms[Math.floor(Math.random() * trendingTerms.length)];
+    }
+
+    const term = state.trendingTerm;
+
+    const labelEl = document.getElementById('resultsLabel');
+    if (labelEl) labelEl.textContent = `Trending: ${term}`;
+
+    const countEl = document.getElementById('resultsCount');
+    if (countEl) countEl.textContent = '';
+
+    try {
+      await runSearch(term, false);
+      const refreshedLabelEl = document.getElementById('resultsLabel');
+      if (refreshedLabelEl) refreshedLabelEl.textContent = `Trending: ${term}`;
+    } catch (err) {
+      console.error('Trending load failed:', err);
+      showError('resultsArea', 'Could not load trending podcasts right now. Please try again.');
+      if (labelEl) labelEl.textContent = 'Trending unavailable';
+      if (countEl) countEl.textContent = '';
+    }
   }
 
-  // ─── Search & Pagination ───────────────────────────────────────────────────────
+  // ─── Search & Pagination ─────────────────────────────────────────────────────
 
   /**
    * Runs a search, shows loading state, then renders results.
@@ -124,11 +150,17 @@
 
       // Update the results label immediately so the user sees what's happening
       const labelEl = document.getElementById('resultsLabel');
-      if (labelEl) labelEl.textContent = `Searching for "${term}"…`;
+      if (labelEl) {
+        labelEl.textContent = state.activeTab === 'trending'
+          ? `Trending: ${term}`
+          : `Searching for "${term}"…`;
+      }
 
-      showLoading('resultsArea', `Searching for "${term}"…`);
+      showLoading('resultsArea', state.activeTab === 'trending'
+        ? `Loading trending podcasts for "${term}"…`
+        : `Searching for "${term}"…`);
       document.getElementById('resultsCount').textContent = '';
-      
+
       const loadMore = document.getElementById('loadMoreContainer');
       if (loadMore) loadMore.style.display = 'none';
     } else {
@@ -141,7 +173,7 @@
 
     try {
       const results = await searchPodcasts(term, 20, state.searchOffset);
-      
+
       if (!append) {
         state.lastResults = results;
         renderResults(results, term, false);
@@ -157,13 +189,14 @@
           ? 'The request timed out. The iTunes API may be slow — please try again.'
           : 'Could not reach the iTunes API. Check your internet connection and try again.';
         showError('resultsArea', msg);
-        
+
         const labelEl = document.getElementById('resultsLabel');
-        if (labelEl) labelEl.textContent = 'Search failed';
+        if (labelEl) labelEl.textContent = state.activeTab === 'trending' ? 'Trending unavailable' : 'Search failed';
         document.getElementById('resultsCount').textContent = '';
       } else {
         alert('Could not load more results. Please check your connection.');
       }
+      throw err;
     } finally {
       const loadMoreBtn = document.getElementById('loadMoreBtn');
       if (loadMoreBtn) {
@@ -245,7 +278,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ─── Preview ─────────────────────────────────────────────────────────────────
+  // ─── Preview ──────────────────────────────────────────────────────────────────
 
   /**
    * Attempts to play the iTunes preview audio for a podcast in our custom player.
@@ -372,7 +405,7 @@
     currentAudio.currentTime = pct * currentAudio.duration;
   }
 
-  // ─── Theme Management ─────────────────────────────────────────────────────────
+  // ─── Theme Management ────────────────────────────────────────────────────────
 
   function toggleTheme() {
     const isDark = document.body.classList.toggle('dark-mode');
@@ -380,7 +413,7 @@
     localStorage.setItem('wavecast_theme', state.theme);
   }
 
-  // ─── Save / Unsave ────────────────────────────────────────────────────────────
+  // ─── Save / Unsave ───────────────────────────────────────────────────────────
 
   function isPodSaved(pod) {
     return state.savedPods.some(p => p.collectionId === pod.collectionId);
@@ -419,7 +452,7 @@
     }
   }
 
-  // ─── Event Listeners ─────────────────────────────────────────────────────────
+  // ─── Event Listeners ──────────────────────────────────────────────────────────
 
   function bindEvents() {
     // Search button click
@@ -437,7 +470,7 @@
       searchInput.addEventListener('input', () => {
         const term = searchInput.value.trim();
         clearTimeout(debounceTimer);
-        
+
         // Search automatically after 450ms when typing stops (min 3 chars)
         if (term.length >= 3) {
           debounceTimer = setTimeout(() => {
@@ -555,7 +588,7 @@
 
   document.addEventListener('DOMContentLoaded', init);
 
-  // ─── Public API (for inline onclick handlers in rendered HTML) ───────────────
+  // ─── Public API (for inline onclick handlers in rendered HTML) ────��──────────
 
   window.App = {
     openDetail,
